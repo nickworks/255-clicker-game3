@@ -1,8 +1,9 @@
-﻿package  {
+﻿package code {
 	
 	import flash.display.MovieClip;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.utils.getTimer;
 	
 	/**
 	 * This is the controller class for the entire Game.
@@ -11,16 +12,25 @@
 		
 		/** This array should only hold Snow objects. */
 		var snowflakes:Array = new Array();
-		/** The number frames to wait before spawning the next Snow object. */
-		var delaySpawn:int = 0;
+		/** The number seconds to wait before spawning the next Snow object. */
+		var delaySpawn:Number = 0;
 		
 		/** This array holds only Bullet objects. */
 		var bullets:Array = new Array();
+		
+		/** This array holds only the enemies' bullets. */
+		var bulletsBad:Array = new Array();
+		
+		/** The amount of time left (in seconds) that the slowmo powerup is active. */
+		var powerupSlowmoTimer:Number = 0;
+		
 		
 		/**
 		 * This is where we setup the game.
 		 */
 		public function Game() {
+			
+			KeyboardInput.setup(stage);
 			
 			addEventListener(Event.ENTER_FRAME, gameLoop);
 			stage.addEventListener(MouseEvent.MOUSE_DOWN, handleClick);
@@ -32,6 +42,19 @@
 		 * @param e The Event that triggered this event-handler.
 		 */
 		private function gameLoop(e:Event):void {
+			
+			Time.update();
+			
+			
+			if(powerupSlowmoTimer > 0){
+				
+				Time.scale = .5;
+				powerupSlowmoTimer -= Time.dt;
+				
+			} else {
+				Time.scale = 1;
+			}
+			
 			
 			spawnSnow();
 			
@@ -49,11 +72,12 @@
 			spawnBullet();
 		}
 		
-		private function spawnBullet():void {
+		public function spawnBullet(s:Snow = null):void {
 
-			var b:Bullet = new Bullet(player);
+			var b:Bullet = new Bullet(player, s);
 			addChild(b);
-			bullets.push(b);
+			if(s) bulletsBad.push(b);
+			else bullets.push(b);
 		}
 		
 		/**
@@ -61,19 +85,19 @@
 		 */
 		private function spawnSnow():void{
 			// spawn snow:
-			delaySpawn --;
+			delaySpawn -= Time.dtScaled;
 			if(delaySpawn <= 0){
 				var s:Snow = new Snow();
 				addChild(s);
 				snowflakes.push(s);
-				delaySpawn = (int)(Math.random() * 10 + 10);
+				delaySpawn = (int)(Math.random() * 2 + .5);
 			}
 		}
 		
 		private function updateSnow():void{
 			// update everything:
 			for(var i = snowflakes.length - 1; i >= 0; i--){
-				snowflakes[i].update();
+				snowflakes[i].update(this);
 				if(snowflakes[i].isDead){
 					// remove it!!
 					
@@ -108,6 +132,16 @@
 					bullets.splice(i, 1);
 				}
 			} // for loop updating bullets
+			
+			
+			for(var i = bulletsBad.length - 1; i >= 0; i--){
+				bulletsBad[i].update();
+				if(bulletsBad[i].isDead){
+					removeChild(bulletsBad[i]);
+					bulletsBad.splice(i, 1);
+				}
+			} // for loop updating bullets			
+			
 		}
 		
 		private function collisionDetection():void{
@@ -121,6 +155,9 @@
 						// collision!
 						snowflakes[i].isDead = true;
 						bullets[j].isDead = true;
+						
+						powerupSlowmoTimer = 2;
+						
 					}
 				}				
 			}
