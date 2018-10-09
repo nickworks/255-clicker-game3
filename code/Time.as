@@ -11,8 +11,6 @@
 		
 		private static var timePrev:Number = 0;
 		
-		
-		
 		public static function update():void {
 			time = getTimer();
 			dt = (time - timePrev) / 1000;

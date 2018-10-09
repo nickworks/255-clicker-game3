@@ -24,6 +24,10 @@
 		/** The amount of time left (in seconds) that the slowmo powerup is active. */
 		var powerupSlowmoTimer:Number = 0;
 		
+		var powerupSlowmoMax:Number = 2;
+		
+		
+		var score:int = 0;
 		
 		/**
 		 * This is where we setup the game.
@@ -65,6 +69,8 @@
 			updateBullets();
 			
 			collisionDetection();
+			
+			hud.update(this);
 			
 		} // function gameLoop
 		
@@ -145,6 +151,8 @@
 		}
 		
 		private function collisionDetection():void{
+			
+			// check between snowflakes and bullets groups:
 			for(var i:int = 0; i < snowflakes.length; i++){
 				for(var j:int = 0; j < bullets.length; j++){
 					
@@ -156,11 +164,26 @@
 						snowflakes[i].isDead = true;
 						bullets[j].isDead = true;
 						
-						powerupSlowmoTimer = 2;
+						powerupSlowmoTimer = powerupSlowmoMax;
 						
+						score += 100;
 					}
 				}				
 			}
+			
+			// check between player and bulletsBad groups:
+			for(var j:int = 0; j < bulletsBad.length; j++){
+					
+				var dx:Number = player.x - bulletsBad[j].x;
+				var dy:Number = player.y - bulletsBad[j].y;
+				var dis:Number = Math.sqrt(dx * dx + dy * dy);
+				if(dis < player.radius + bulletsBad[j].radius){
+					// collision!
+					bulletsBad[j].isDead = true;
+					player.health -= 1;
+				}
+			}
+			
 		}
 		
 	} // class Game

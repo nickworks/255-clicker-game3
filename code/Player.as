@@ -5,6 +5,8 @@
 	
 	public class Player extends MovieClip {
 		
+		var health:int = 4;
+		var radius:Number = 17;
 		
 		public function Player() {
 			// constructor code
